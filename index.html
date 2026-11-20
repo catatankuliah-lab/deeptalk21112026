@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruang Kecil Untuk Ratna Komalasari</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Cormorant Garamond (Serif hangat) & Plus Jakarta Sans (Sans-serif lembut) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        cream: '#FAF6F0',
+                        beige: '#F2EAE1',
+                        sage: '#7C9082',
+                        sageDark: '#637569',
+                        dusty: '#C88A84',
+                        dustyLight: '#EAD6D3',
+                        charcoal: '#3A3532',
+                        mutedText: '#6E6660'
+                    },
+                    fontFamily: {
+                        serif: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom animations & smooth transitions */
+        body {
+            background-color: #FAF6F0;
+            color: #3A3532;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* Soft ambient background blobs */
+        .ambient-blob {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 0;
+            opacity: 0.45;
+            pointer-events: none;
+            animation: floatSlow 18s ease-in-out infinite alternate;
+        }
+
+        @keyframes floatSlow {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(25px, -20px) scale(1.06); }
+        }
+
+        /* Card transition animation */
+        .card-enter {
+            animation: cardFadeIn 0.65s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        @keyframes cardFadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(14px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Breathing circle animation for Pause / Safe Space mode */
+        .breathing-circle {
+            animation: breathe 8s ease-in-out infinite;
+        }
+
+        @keyframes breathe {
+            0%, 100% {
+                transform: scale(0.85);
+                background-color: rgba(124, 144, 130, 0.22);
+            }
+            50% {
+                transform: scale(1.25);
+                background-color: rgba(200, 138, 132, 0.28);
+            }
+        }
+
+        /* Audio equalizer bars */
+        .eq-bar {
+            width: 3px;
+            border-radius: 9999px;
+            background-color: #7C9082;
+            transition: height 0.2s ease;
+        }
+        .eq-playing .eq-bar:nth-child(1) { animation: eqBounce 1.1s ease-in-out infinite; }
+        .eq-playing .eq-bar:nth-child(2) { animation: eqBounce 0.85s ease-in-out infinite 0.2s; }
+        .eq-playing .eq-bar:nth-child(3) { animation: eqBounce 1.25s ease-in-out infinite 0.4s; }
+        .eq-paused .eq-bar { height: 4px !important; animation: none; }
+
+        @keyframes eqBounce {
+            0%, 100% { height: 5px; }
+            50% { height: 15px; }
+        }
+
+        /* Custom subtle scrollbar */
+        .card-scroll::-webkit-scrollbar,
+        textarea::-webkit-scrollbar {
+            width: 6px;
+        }
+        .card-scroll::-webkit-scrollbar-track,
+        textarea::-webkit-scrollbar-track {
+            background: #F2EAE1;
+            border-radius: 8px;
+        }
+        .card-scroll::-webkit-scrollbar-thumb,
+        textarea::-webkit-scrollbar-thumb {
+            background: #C8BFB6;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between relative selection:bg-dusty/20 selection:text-charcoal">
+
+    <!-- Ambient Warm Background Shapes -->
+    <div class="ambient-blob bg-dustyLight w-72 h-72 sm:w-96 sm:h-96 -top-16 -left-16"></div>
+    <div class="ambient-blob bg-sage/25 w-80 h-80 sm:w-[28rem] sm:h-[28rem] bottom-0 -right-20" style="animation-delay: -6s;"></div>
+
+    <!-- Top Navigation Bar: Ambient Audio Control & Safe Space Pause Button -->
+    <header class="w-full max-w-2xl mx-auto px-4 pt-5 pb-2 flex items-center justify-between relative z-20">
+        <!-- Ambient Music Toggle -->
+        <button id="audioToggleBtn" type="button" onclick="toggleAmbientAudio()"
+            class="flex items-center gap-2.5 px-3.5 py-2 rounded-full bg-white/75 backdrop-blur-md border border-beige shadow-sm hover:bg-white transition-all text-xs sm:text-sm text-charcoal focus:outline-none focus:ring-2 focus:ring-sage/40"
+            aria-label="Putar atau jeda musik latar">
+            <div id="eqVisualizer" class="flex items-end gap-0.5 h-4 eq-paused">
+                <span class="eq-bar h-1"></span>
+                <span class="eq-bar h-1"></span>
+                <span class="eq-bar h-1"></span>
+            </div>
+            <span id="audioLabel" class="font-medium text-mutedText">Musik Lembut: Mati</span>
+        </button>
+
+        <!-- "Istirahat Sebentar" (Safe Space / Pause) Button -->
+        <button type="button" onclick="openPauseModal()"
+            class="flex items-center gap-2 px-4 py-2 rounded-full bg-dusty/15 hover:bg-dusty/25 border border-dusty/30 text-charcoal transition-all text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-dusty/40">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-dusty" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
+                <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
+                <line x1="6" y1="1" x2="6" y2="4"/>
+                <line x1="10" y1="1" x2="10" y2="4"/>
+                <line x1="14" y1="1" x2="14" y2="4"/>
+            </svg>
+            <span>Istirahat Sebentar</span>
+        </button>
+    </header>
+
+    <!-- Main Interactive Card Container -->
+    <main class="flex-1 flex flex-col items-center justify-center px-4 py-4 sm:py-6 relative z-10 w-full max-w-2xl mx-auto">
+        
+        <!-- Soft Progress Dots (Visible during Steps 1 - 7) -->
+        <div id="progressContainer" class="hidden w-full max-w-md mb-5 flex flex-col items-center gap-2">
+            <div id="progressDots" class="flex items-center justify-center gap-2"></div>
+            <span id="stepIndicatorText" class="text-xs tracking-wide text-mutedText font-medium"></span>
+        </div>
+
+        <!-- Card Wrapper (Fixed height biar posisi tombol selalu konsisten) -->
+        <div id="cardContainer" class="w-full h-[560px] sm:h-[600px] flex flex-col bg-white/85 backdrop-blur-md border border-beige/90 rounded-3xl shadow-[0_12px_40px_-12px_rgba(58,53,50,0.08)] p-6 sm:p-10 transition-all overflow-hidden">
+            <!-- Dynamic Card Content Injected via JS -->
+        </div>
+    </main>
+
+    <!-- Subtle Footer -->
+    <footer class="w-full text-center py-4 px-4 text-xs text-mutedText/80 relative z-10">
+        Dibuat dengan sepenuh hati, khusus untuk Calon Istriku Tersayang Ratna Komalasari.
+    </footer>
+
+    <!-- Safe Space / "Istirahat Sebentar" Overlay Modal -->
+    <div id="pauseModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-charcoal/40 backdrop-blur-sm p-4 transition-opacity">
+        <div class="bg-cream border border-beige rounded-3xl max-w-md w-full p-7 sm:p-9 text-center shadow-2xl card-enter">
+            <!-- Breathing Animation Circle -->
+            <div class="relative w-32 h-32 mx-auto mb-6 flex items-center justify-center">
+                <div class="breathing-circle w-24 h-24 rounded-full flex items-center justify-center">
+                    <div class="w-12 h-12 rounded-full bg-white/80 flex items-center justify-center shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-sage" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <h3 class="font-serif text-2xl sm:text-3xl font-semibold text-charcoal mb-3">
+                Kita Jeda Sebentar Ya, Sayang
+            </h3>
+            <p class="text-sm sm:text-base text-mutedText leading-relaxed mb-7">
+                Tarik napas pelan-pelan ya, Sayangku. Nggak ada yang buru-buru di sini. Obrolan ini boleh berhenti kapan pun kamu butuh waktu buat diri sendiri.
+            </p>
+            <button type="button" onclick="closePauseModal()"
+                class="w-full py-3.5 px-6 rounded-2xl bg-sage hover:bg-sageDark text-white font-medium text-sm sm:text-base shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-sage/50">
+                Lanjutkan Pelan-Pelan
+            </button>
+        </div>
+    </div>
+
+    <!-- Full-Screen Hug Sanctuary Overlay (Penutup Momen Pelukan) -->
+    <div id="hugScreen" class="fixed inset-0 z-50 hidden flex-col items-center justify-center bg-cream/95 backdrop-blur-md p-6 text-center transition-all duration-700">
+        <!-- Soft Ambient Glow -->
+        <div class="absolute w-80 h-80 sm:w-[28rem] sm:h-[28rem] rounded-full bg-dustyLight/45 blur-3xl pointer-events-none"></div>
+
+        <div class="relative z-10 max-w-md w-full flex flex-col items-center card-enter">
+            <!-- Gentle Heart / Embrace Pulse -->
+            <div class="relative w-32 h-32 mb-7 flex items-center justify-center">
+                <div class="breathing-circle w-28 h-28 rounded-full flex items-center justify-center">
+                    <div class="w-16 h-16 rounded-full bg-white/90 flex items-center justify-center shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7 text-dusty" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <span class="inline-block px-3.5 py-1 rounded-full bg-dusty/15 text-dusty text-xs font-medium tracking-wide mb-4">
+                Sekarang Taruh Layarnya Sebentar Ya...
+            </span>
+
+            <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-charcoal leading-snug mb-4">
+                Sini Peluk Dulu, Calon Istriku Tersayang
+            </h2>
+
+            <p class="text-sm sm:text-base text-mutedText leading-relaxed mb-8">
+                Nggak usah mikirin apa-apa lagi hari ini, Sayangku. Kamu udah hebat banget mau jujur dan pelan-pelan ngerawat diri kamu sendiri. Aku di sini, nemenin kamu.
+            </p>
+        </div>
+    </div>
+
+    <!-- Gentle Toast Notification (Replaces alert) -->
+    <div id="toastMessage" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 hidden bg-charcoal text-cream px-5 py-3 rounded-full text-xs sm:text-sm shadow-lg transition-all">
+    </div>
+
+    <script>
+        /**
+         * DATA ALUR KARTU DEEP TALK (0 = Opening, 1-7 = Step Deep Talk, 8 = Closing)
+         * Dilengkapi dengan jembatan "whyAsk" (Kenapa aku nanya ini...) sebelum pertanyaan utama
+         */
+        const cardsData = [
+            {
+                type: 'opening',
+                eyebrow: 'Khusus Untuk Ratna Komalasari',
+                title: 'Untuk Calon Istriku Tersayang',
+                subtitle: 'Hai Sayang, nggak ada jawaban benar atau salah di sini. Ini cuma ruang kecil yang aku siapin khusus buat kamu, biar kita bisa ngobrol pelan-pelan dengan hati yang tenang.',
+                photoSrc: '1.png',
+                photoCaption: 'Ruang aman buat Sayangku—pelan-pelan aja ya.',
+                buttonText: 'Mulai Pelan-Pelan'
+            },
+            {
+                type: 'step',
+                stepNumber: 1,
+                tag: 'Step 1 · Kesepakatan Aman',
+                context: 'Sebelum kita mulai ngobrol lebih jauh, aku pengen Sayang tahu kalau kamu punya kendali penuh di sini. Kapan pun kamu ngerasa lelah, kita selalu boleh berhenti tanpa harus ngerasa nggak enak.',
+                question: 'Kalau di tengah obrolan nanti kamu ngerasa mulai capek atau kepikiran hal yang bikin nggak enak, kita sepakat aja ya kalau boleh stop sebentar dulu—menurut kamu cara nge-pause yang paling enak buat kita gimana?',
+                alternative: null
+            },
+            {
+                type: 'step',
+                stepNumber: 2,
+                tag: 'Step 2 · Hal Kecil Buat Diri Sendiri',
+                context: 'Aku nanya ini karena aku sering ngeliat Sayangku terlalu terbiasa ngalah sama keadaan atau mikirin orang lain dulu, sampai hal-hal sederhana buat diri kamu sendiri sering kelewat.',
+                question: 'Di keseharian kamu, ada nggak hal kecil yang sebenarnya pengen kamu lakuin buat diri sendiri, tapi sering ketunda karena nggak enak atau kepikiran hal lain?',
+                alternative: 'Atau versi ringannya: Kalau lagi nggak ada tuntutan siapa-siapa dan lagi capek banget, biasanya hal paling sederhana yang bikin kamu agak enakan itu apa?'
+            },
+            {
+                type: 'step',
+                stepNumber: 3,
+                tag: 'Step 3 · Rasa Aman vs. Tekanan',
+                context: 'Aku nanya ini bukan buat nyari salah siapa pun ya, Sayang, cuma biar aku makin peka—mana hal yang bikin kamu bernapas lega dan mana yang tanpa sadar nambah beban di pikiran kamu.',
+                question: 'Di keseharian atau di hubungan kita, hal apa yang bikin kamu ngerasa paling tenang dan dihargai, dan apa yang kadang bikin kamu ngerasa agak tertekan?',
+                alternative: null
+            },
+            {
+                type: 'step',
+                stepNumber: 4,
+                tag: 'Step 4 · Ruang & Waktu Sendiri',
+                context: 'Aku nanya ini biar aku nggak salah paham kalau suatu saat Sayangku lagi butuh ruang sendiri—aku pengen kamu ngerasa aman dan nggak bersalah saat butuh waktu buat ngisi ulang energi.',
+                question: 'Kalau lagi pengen punya waktu sendiri atau lagi nahan capek, enaknya kayak gimana biar kamu tetap nyaman tanpa ngerasa nggak enak sama aku?',
+                alternative: null
+            },
+            {
+                type: 'step',
+                stepNumber: 5,
+                tag: 'Step 5 · Cara Aku Menemani Kamu',
+                context: 'Tiap orang punya cara beda-beda buat ditenangin pas lagi berat, Cantikku. Aku nggak mau nebak-nebak dan malah bikin kamu makin nggak nyaman saat emosi lagi turun.',
+                question: 'Kalau suatu saat emosi kamu lagi turun, aku bakal lebih ngebantu kalau ngapain—apakah nemenin ngobrol, meluk, atau ngasih ruang dulu?',
+                alternative: null
+            },
+            {
+                type: 'step',
+                stepNumber: 6,
+                tag: 'Step 6 · Menghormati Ruang Terapi',
+                context: 'Proses pemulihan kamu adalah ruang yang sangat personal, Sayang, dan aku menghormati batas mana yang pengen kamu simpan sendiri atau bagi sama aku.',
+                question: 'Soal proses terapi kamu, kamu lebih nyaman kalau aku tahu garis besarnya aja, atau emang lebih enak dijadiin ruang kamu sendiri dulu?',
+                alternative: null
+            },
+            {
+                type: 'step',
+                stepNumber: 7,
+                tag: 'Step 7 · Ritme Langkah Kita',
+                context: 'Kita nggak lagi lomba lari, Cantikku. Kamu nggak harus nunggu "sempurna" dulu buat melangkah, kita jalan bareng sesuai ritme yang sehat dan hangat buat berdua.',
+                question: 'Kalau mikirin langkah kita ke depan menuju nikah, bagian mana yang bikin kamu paling tenang, dan bagian mana yang bikin kamu agak deg-degan?',
+                alternative: null
+            },
+            {
+                type: 'closing',
+                title: 'Terima Kasih Sudah Hadir, Calon Istriku Tersayang',
+                message: 'Terima kasih udah berani jujur, pelan-pelan, dan berbagi ruang ini sama aku, Sayangku. Kamu nggak harus selalu sempurna—cukup jadi diri kamu apa adanya, dan kita jalanin langkah ke depan bareng-bareng dengan ritme yang sehat.',
+                photos: [
+                    { src: '2.png', alt: 'Momen ketawa bareng Sayang' },
+                    { src: '3.png', alt: 'Momen manis jalan berdua' }
+                ],
+                photoCaption: 'Habis ini kita ketawa dan nikmatin hal-hal sederhana bareng lagi ya, Sayang.',
+                buttonText: 'I Love You Sayang ❤️'
+            }
+        ];
+
+        /**
+         * STATE APLIKASI
+         */
+        let currentIndex = 0;
+        const notes = {};
+        const noteOpenState = {};
+
+        /**
+         * AMBIENT AUDIO ENGINE (Web Audio API - Lembut & Menenangkan)
+         */
+        let audioCtx = null;
+        let isAudioPlaying = false;
+        let chordInterval = null;
+
+        function toggleAmbientAudio() {
+            const label = document.getElementById('audioLabel');
+            const eq = document.getElementById('eqVisualizer');
+
+            if (!isAudioPlaying) {
+                try {
+                    if (!audioCtx) {
+                        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                        audioCtx = new AudioContextClass();
+                    }
+                    if (audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+                    startAmbientPad();
+                    isAudioPlaying = true;
+                    label.textContent = 'Musik Lembut: Nyala';
+                    label.classList.remove('text-mutedText');
+                    label.classList.add('text-sageDark');
+                    eq.classList.remove('eq-paused');
+                    eq.classList.add('eq-playing');
+                } catch (e) {
+                    showToast('Browser tidak mendukung pemutaran audio otomatis.');
+                }
+            } else {
+                stopAmbientPad();
+                isAudioPlaying = false;
+                label.textContent = 'Musik Lembut: Mati';
+                label.classList.remove('text-sageDark');
+                label.classList.add('text-mutedText');
+                eq.classList.remove('eq-playing');
+                eq.classList.add('eq-paused');
+            }
+        }
+
+        function startAmbientPad() {
+            // Progresi akor hangat (Fmaj7 - Cmaj7 - Am7 - G6) dengan gelombang sine & triangle lembut
+            const chords = [
+                [174.61, 220.00, 261.63, 329.63], // Fmaj7
+                [130.81, 196.00, 246.94, 329.63], // Cmaj7
+                [220.00, 261.63, 329.63, 392.00], // Am7
+                [196.00, 246.94, 293.66, 329.63]  // G6
+            ];
+            let chordIndex = 0;
+
+            const playWarmChord = () => {
+                if (!audioCtx || !isAudioPlaying) return;
+                const now = audioCtx.currentTime;
+                const notesFreq = chords[chordIndex % chords.length];
+                chordIndex++;
+
+                notesFreq.forEach((freq) => {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(freq, now);
+
+                    // Envelope sangat lembut (fade-in & fade-out panjang)
+                    gain.gain.setValueAtTime(0.0001, now);
+                    gain.gain.exponentialRampToValueAtTime(0.018, now + 1.8);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 5.8);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.start(now);
+                    osc.stop(now + 6.0);
+                });
+            };
+
+            playWarmChord();
+            chordInterval = setInterval(playWarmChord, 5200);
+        }
+
+        function stopAmbientPad() {
+            if (chordInterval) {
+                clearInterval(chordInterval);
+                chordInterval = null;
+            }
+        }
+
+        /**
+         * NAVIGASI & CATATAN OPSIONAL
+         */
+        function goToCard(index) {
+            if (index < 0 || index >= cardsData.length) return;
+            currentIndex = index;
+            renderCard(true);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleNoteBox(stepIdx) {
+            noteOpenState[stepIdx] = !noteOpenState[stepIdx];
+            renderCard(false);
+        }
+
+        function saveNote(stepIdx, value) {
+            notes[stepIdx] = value;
+        }
+
+        function handleFinishHug() {
+            const hugScreen = document.getElementById('hugScreen');
+            hugScreen.classList.remove('hidden');
+            hugScreen.classList.add('flex');
+        }
+
+        /**
+         * RENDER KARTU DINAMIS
+         */
+        function renderCard(animate = true) {
+            const container = document.getElementById('cardContainer');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressDots = document.getElementById('progressDots');
+            const stepIndicatorText = document.getElementById('stepIndicatorText');
+            const card = cardsData[currentIndex];
+
+            // Reset animasi kartu jika pindah halaman
+            if (animate) {
+                container.classList.remove('card-enter');
+                void container.offsetWidth; // trigger reflow
+                container.classList.add('card-enter');
+            }
+
+            // Atur tampilan progress bar (hanya tampil di Step 1 - 7)
+            if (card.type === 'step') {
+                progressContainer.classList.remove('hidden');
+                stepIndicatorText.textContent = `Langkah ${card.stepNumber} dari 7 · Nggak harus selesai semua hari ini`;
+                
+                let dotsHTML = '';
+                for (let i = 1; i <= 7; i++) {
+                    const isActive = i === card.stepNumber;
+                    const isPassed = i < card.stepNumber;
+                    dotsHTML += `<button type="button" onclick="goToCard(${i})" aria-label="Ke langkah ${i}"
+                        class="h-2 rounded-full transition-all duration-300 ${
+                            isActive ? 'w-7 bg-sage' : isPassed ? 'w-2.5 bg-sage/50' : 'w-2 bg-beige'
+                        }"></button>`;
+                }
+                progressDots.innerHTML = dotsHTML;
+            } else {
+                progressContainer.classList.add('hidden');
+            }
+
+            // 1. RENDER OPENING CARD
+            if (card.type === 'opening') {
+                container.innerHTML = `
+                    <div class="flex-1 flex flex-col justify-between h-full min-h-0">
+                        <div class="card-scroll overflow-y-auto pr-1 flex-1 flex flex-col items-center justify-center text-center">
+                            <span class="inline-block px-3.5 py-1 rounded-full bg-dusty/15 text-dusty text-xs font-medium tracking-wide mb-3">
+                                ${card.eyebrow}
+                            </span>
+
+                            <h1 class="font-serif text-3xl sm:text-4xl font-semibold text-charcoal leading-tight mb-3">
+                                ${card.title}
+                            </h1>
+
+                            <!-- Foto Pembuka (Fixed Foto Solo Ratna) -->
+                            <div class="relative w-36 h-44 sm:w-44 sm:h-52 my-3 rounded-[2rem] overflow-hidden shadow-md border-4 border-white/90 bg-beige shrink-0">
+                                <img src="${card.photoSrc}"
+                                    onerror="this.onerror=null; this.src='https://placehold.co/400x480/EAD6D3/3A3532?text=Cantikku';"
+                                    alt="Foto Calon Istriku Tersayang"
+                                    class="w-full h-full object-cover object-center">
+                            </div>
+                            <p class="text-xs italic text-mutedText mb-3">${card.photoCaption}</p>
+
+                            <p class="text-sm text-mutedText leading-relaxed max-w-md">
+                                ${card.subtitle}
+                            </p>
+                        </div>
+
+                        <div class="pt-4 border-t border-beige/80 flex justify-center shrink-0">
+                            <button type="button" onclick="goToCard(1)"
+                                class="w-full sm:w-auto min-w-[220px] py-3.5 px-8 rounded-2xl bg-sage hover:bg-sageDark text-white font-medium text-sm sm:text-base shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-sage/50">
+                                <span>${card.buttonText}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // 2. RENDER STEP 1 - 7 CARDS
+            if (card.type === 'step') {
+                const isNoteOpen = !!noteOpenState[currentIndex];
+                const savedNote = notes[currentIndex] || '';
+
+                container.innerHTML = `
+                    <div class="flex-1 flex flex-col justify-between h-full min-h-0">
+                        <div class="card-scroll overflow-y-auto pr-1 flex-1">
+                            <!-- Tag Step -->
+                            <div class="flex items-center justify-between mb-3">
+                                <span class="inline-block px-3.5 py-1 rounded-full bg-sage/15 text-sageDark text-xs font-medium tracking-wide">
+                                    ${card.tag}
+                                </span>
+                            </div>
+
+                            <!-- Jembatan Konteks: Kenapa aku nanya ini... -->
+                            <div class="bg-cream/95 border-l-2 border-dusty/60 rounded-r-2xl p-3.5 sm:p-4 mb-4">
+                                <p class="text-[11px] font-semibold uppercase tracking-wider text-dusty mb-1">
+                                    Kenapa aku nanya ini...
+                                </p>
+                                <p class="text-xs sm:text-sm text-mutedText leading-relaxed">
+                                    ${card.context}
+                                </p>
+                            </div>
+
+                            <!-- Pertanyaan Utama -->
+                            <h2 class="font-serif text-2xl sm:text-3xl font-semibold text-charcoal leading-snug mb-3">
+                                “${card.question}”
+                            </h2>
+
+                            <!-- Alternatif Pertanyaan Ringan (jika ada) -->
+                            ${card.alternative ? `
+                                <div class="bg-beige/60 border border-beige rounded-2xl p-3.5 sm:p-4 mb-4">
+                                    <p class="text-xs sm:text-sm text-charcoal/85 italic leading-relaxed">
+                                        ${card.alternative}
+                                    </p>
+                                </div>
+                            ` : ''}
+
+                            <!-- Toggle Catatan Kecil Opsional -->
+                            <div class="mt-2 mb-2">
+                                <button type="button" onclick="toggleNoteBox(${currentIndex})"
+                                    class="inline-flex items-center gap-2 text-xs sm:text-sm text-sageDark hover:text-charcoal font-medium transition-colors focus:outline-none">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 20h9"></path>
+                                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                                    </svg>
+                                    <span>${isNoteOpen ? 'Tutup catatan kecil' : 'Tulis catatan kecil (opsional, kalau lebih nyaman ditulis)'}</span>
+                                </button>
+
+                                ${isNoteOpen ? `
+                                    <div class="mt-3">
+                                        <textarea
+                                            rows="3"
+                                            oninput="saveNote(${currentIndex}, this.value)"
+                                            placeholder="Nggak wajib diisi kok Sayang, cukup obrolin langsung juga udah cukup banget..."
+                                            class="w-full rounded-2xl bg-cream/80 border border-beige p-3.5 text-sm text-charcoal placeholder:text-mutedText/60 focus:outline-none focus:ring-2 focus:ring-sage/40 transition-all"
+                                        >${escapeHTML(savedNote)}</textarea>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Tombol Navigasi Bawah -->
+                        <div class="flex items-center justify-between gap-3 pt-4 border-t border-beige/80 shrink-0">
+                            <button type="button" onclick="goToCard(${currentIndex - 1})"
+                                class="py-3 px-4 sm:px-5 rounded-2xl border border-beige bg-cream/70 hover:bg-beige text-mutedText hover:text-charcoal text-xs sm:text-sm font-medium transition-all flex items-center gap-1.5">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                                    <polyline points="12 19 5 12 12 5"></polyline>
+                                </svg>
+                                <span>Balik Dulu</span>
+                            </button>
+
+                            <button type="button" onclick="goToCard(${currentIndex + 1})"
+                                class="py-3 px-5 sm:px-7 rounded-2xl bg-sage hover:bg-sageDark text-white text-xs sm:text-sm font-medium shadow-sm transition-all flex items-center gap-2 focus:outline-none focus:ring-2 focus:ring-sage/50">
+                                <span>${currentIndex === 7 ? 'Ke Penutup' : 'Lanjut Pelan-Pelan'}</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                                    <polyline points="12 5 19 12 12 19"></polyline>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            // 3. RENDER CLOSING CARD
+            if (card.type === 'closing') {
+                // Kumpulkan catatan opsional jika ada yang diisi
+                const filledNotes = Object.entries(notes)
+                    .filter(([_, val]) => val && val.trim().length > 0)
+                    .map(([idx, val]) => ({
+                        step: cardsData[Number(idx)].tag,
+                        text: val.trim()
+                    }));
+
+                container.innerHTML = `
+                    <div class="flex-1 flex flex-col justify-between h-full min-h-0">
+                        <div class="card-scroll overflow-y-auto pr-1 flex-1 flex flex-col items-center text-center">
+                            <span class="inline-block px-3.5 py-1 rounded-full bg-sage/15 text-sageDark text-xs font-medium tracking-wide mb-3">
+                                Penutup & Apresiasi
+                            </span>
+
+                            <h2 class="font-serif text-2xl sm:text-4xl font-semibold text-charcoal leading-tight mb-3">
+                                ${card.title}
+                            </h2>
+
+                            <!-- Galeri Dua Foto Berdua (Fixed) -->
+                            <div class="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-[260px] sm:max-w-[290px] my-2 shrink-0">
+                                ${card.photos.map((photo, idx) => `
+                                    <div class="relative aspect-[4/5] rounded-[1.75rem] overflow-hidden shadow-md border-4 border-white/90 bg-beige ${idx === 0 ? '-rotate-1' : 'rotate-1'} transition-transform hover:rotate-0 duration-300">
+                                        <img src="${photo.src}"
+                                            onerror="this.onerror=null; this.src='https://placehold.co/400x500/F2EAE1/3A3532?text=Kita+Berdua';"
+                                            alt="${photo.alt}"
+                                            class="w-full h-full object-cover object-center">
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <p class="text-xs italic text-mutedText mt-1 mb-3">${card.photoCaption}</p>
+
+                            <p class="text-xs sm:text-sm text-mutedText leading-relaxed max-w-md mb-4">
+                                ${card.message}
+                            </p>
+
+                            <!-- Ringkasan Catatan Opsional (Hanya muncul kalau ada yang ditulis) -->
+                            ${filledNotes.length > 0 ? `
+                                <div class="w-full text-left bg-cream/90 border border-beige rounded-2xl p-4 mb-3">
+                                    <p class="text-xs font-semibold text-sageDark uppercase tracking-wider mb-2.5">
+                                        Catatan Kecil Sayangku Hari Ini
+                                    </p>
+                                    <div class="space-y-2.5">
+                                        ${filledNotes.map(item => `
+                                            <div class="bg-white/80 rounded-xl p-3 border border-beige/70">
+                                                <span class="block text-[11px] font-medium text-dusty mb-1">${item.step}</span>
+                                                <p class="text-xs sm:text-sm text-charcoal leading-relaxed whitespace-pre-line">${escapeHTML(item.text)}</p>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            ` : ''}
+                        </div>
+
+                        <div class="pt-4 border-t border-beige/80 flex justify-center shrink-0">
+                            <button type="button" onclick="handleFinishHug()"
+                                class="w-full sm:w-auto min-w-[220px] py-3.5 px-7 rounded-2xl bg-dusty hover:bg-dusty/90 text-white font-medium text-sm sm:text-base shadow-sm transition-all flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-dusty/50">
+                                <span>${card.buttonText}</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        /**
+         * MODAL SAFE SPACE ("ISTIRAHAT SEBENTAR")
+         */
+        function openPauseModal() {
+            const modal = document.getElementById('pauseModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closePauseModal() {
+            const modal = document.getElementById('pauseModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        /**
+         * UTILITY: TOAST & HTML ESCAPE
+         */
+        let toastTimer = null;
+        function showToast(msg) {
+            const toast = document.getElementById('toastMessage');
+            toast.textContent = msg;
+            toast.classList.remove('hidden');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 3400);
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, tag => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                "'": '&#39;',
+                '"': '&quot;'
+            }[tag]));
+        }
+
+        // Inisialisasi kartu pertama saat halaman dimuat
+        window.onload = function() {
+            renderCard(true);
+        };
+    </script>
+</body>
+</html>
